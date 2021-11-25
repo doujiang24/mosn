@@ -18,13 +18,12 @@
 package mosn
 
 import (
-	"syscall"
+	"os"
 
 	admin "mosn.io/mosn/pkg/admin/server"
-	"mosn.io/mosn/pkg/config/v2"
+	v2 "mosn.io/mosn/pkg/config/v2"
 	"mosn.io/mosn/pkg/configmanager"
 	"mosn.io/mosn/pkg/featuregate"
-	"mosn.io/mosn/pkg/log"
 	"mosn.io/mosn/pkg/server/keeper"
 	"mosn.io/mosn/pkg/types"
 )
@@ -46,10 +45,15 @@ func DefaultInitStage(c *v2.MOSNConfig) {
 func DefaultPreStartStage(m *Mosn) {
 	// the signals SIGKILL and SIGSTOP may not be caught by a program,
 	// so we need other ways to ensure that resources are safely cleaned up
-	keeper.AddSignalCallback(func() {
-		log.DefaultLogger.Infof("[mosn] [close] mosn closed by sys signal")
-		m.Close()
-	}, syscall.SIGINT, syscall.SIGTERM)
+	keeper.RegisterSignalHandler(func(sig os.Signal) {
+		m.stm.SignalHanler(sig)
+	})
+	// make keeper.OnGracefulShutdown usable
+	keeper.SetGracefulShutdownRegister(func(cb func()) {
+		m.stm.AppendPreStopStage(func(*Mosn) {
+			cb()
+		})
+	})
 	// start xds client
 	_ = m.StartXdsClient()
 	featuregate.FinallyInitFunc()
