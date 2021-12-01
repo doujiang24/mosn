@@ -19,11 +19,10 @@ package mosn
 
 import (
 	admin "mosn.io/mosn/pkg/admin/server"
-	"mosn.io/mosn/pkg/admin/store"
 	v2 "mosn.io/mosn/pkg/config/v2"
 	"mosn.io/mosn/pkg/configmanager"
 	"mosn.io/mosn/pkg/featuregate"
-	"mosn.io/mosn/pkg/server/keeper"
+	stm "mosn.io/mosn/pkg/stagemanager"
 	"mosn.io/mosn/pkg/types"
 )
 
@@ -41,18 +40,8 @@ func DefaultInitStage(c *v2.MOSNConfig) {
 }
 
 // Default Pre-start Stage wrappers
-func DefaultPreStartStage(m *Mosn) {
-	// the signals SIGKILL and SIGSTOP may not be caught by a program,
-	// so we need other ways to ensure that resources are safely cleaned up
-	keeper.RegisterFinisher(func(state store.State) {
-		m.stm.Finisher(state)
-	})
-	// make keeper.OnGracefulShutdown usable
-	keeper.SetGracefulShutdownRegister(func(cb func()) {
-		m.stm.AppendPreStopStage(func(*Mosn) {
-			cb()
-		})
-	})
+func DefaultPreStartStage(mosn stm.Mosn) {
+	m := mosn.(*Mosn)
 	// start xds client
 	_ = m.StartXdsClient()
 	featuregate.FinallyInitFunc()
@@ -60,7 +49,8 @@ func DefaultPreStartStage(m *Mosn) {
 }
 
 // Default Start Stage wrappers
-func DefaultStartStage(m *Mosn) {
+func DefaultStartStage(mosn stm.Mosn) {
+	m := mosn.(*Mosn)
 	// register admin server
 	// admin server should registered after all prepares action ready
 	srv := admin.Server{}
