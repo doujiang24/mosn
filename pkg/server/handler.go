@@ -679,7 +679,7 @@ func (arc *activeRawConn) UseOriginalDst(ctx context.Context) {
 		localListener.OnAccept(arc.rawc, false, arc.oriRemoteAddr, ch, buf)
 		return
 	}
-	
+
 	// If it can’t find any matching listeners and should using the self listener.
 	if log.DefaultLogger.GetLogLevel() >= log.INFO {
 		log.DefaultLogger.Infof("[server] [conn] original dst:%s:%d", arc.activeListener.listenIP, arc.activeListener.listenPort)
@@ -859,16 +859,6 @@ func SendInheritConfig() error {
 }
 
 func GetInheritListeners() ([]net.Listener, []net.PacketConn, net.Conn, error) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.StartLogger.Errorf("[server] getInheritListeners panic %v", r)
-		}
-	}()
-
-	if !isReconfigure() {
-		return nil, nil, nil, nil
-	}
-
 	syscall.Unlink(types.TransferListenDomainSocket)
 
 	l, err := net.Listen("unix", types.TransferListenDomainSocket)
