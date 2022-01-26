@@ -70,6 +70,11 @@ func (fm *filterManager) InitializeReadFilters() bool {
 		return false
 	}
 
+	for index := 0; index < len(fm.upstreamFilters); index++ {
+		uf := fm.upstreamFilters[index]
+		uf.index = index
+	}
+
 	fm.onContinueReading(nil)
 	return true
 }
@@ -84,8 +89,6 @@ func (fm *filterManager) onContinueReading(filter *activeReadFilter) {
 
 	for ; index < len(fm.upstreamFilters); index++ {
 		uf = fm.upstreamFilters[index]
-		uf.index = index
-
 		if !uf.initialized {
 			uf.initialized = true
 
