@@ -97,6 +97,15 @@ func (fm *filterManager) onContinueReading(previousIndex int, buf buffer.IoBuffe
 
 	for ; index < len(fm.upstreamFilters); index++ {
 		uf = fm.upstreamFilters[index]
+
+		if !uf.initialized {
+			uf.initialized = true
+			status := uf.filter.OnNewConnection()
+			if status == api.Stop {
+				return
+			}
+		}
+
 		status := uf.filter.OnData(buf)
 		if status == api.Stop {
 			return
