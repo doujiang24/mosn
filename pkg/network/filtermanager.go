@@ -87,6 +87,8 @@ func (fm *filterManager) onContinueReading(filter *activeReadFilter) {
 		index = filter.index + 1
 	}
 
+	buf := fm.conn.GetReadBuffer()
+
 	for ; index < len(fm.upstreamFilters); index++ {
 		uf = fm.upstreamFilters[index]
 		if !uf.initialized {
@@ -98,8 +100,6 @@ func (fm *filterManager) onContinueReading(filter *activeReadFilter) {
 				return
 			}
 		}
-
-		buf := fm.conn.GetReadBuffer()
 
 		if buf != nil && buf.Len() > 0 {
 			status := uf.filter.OnData(buf)
