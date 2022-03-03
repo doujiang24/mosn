@@ -38,6 +38,7 @@ const (
 	CmdCodeHeartbeat   uint16 = 0 // cmd code
 	CmdCodeRpcRequest  uint16 = 1
 	CmdCodeRpcResponse uint16 = 2
+	CmdCodeGoAway      uint16 = 3
 
 	Hessian2Serialize byte = 1 // serialize
 
